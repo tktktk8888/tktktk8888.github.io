@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スプラトゥーン3 インタラクティブ戦略ガイド (最終版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #FF7B00;
+            border-bottom-color: #FF7B00;
+        }
+        .weapon-btn.active {
+            background-color: #008D8D;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .rule-tab.active {
+            background-color: #FF7B00;
+            color: white;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .card-bg-light { background-color: #FFF7EE; }
+        .accent-color { color: #FF7B00; }
+        .accent-bg { background-color: #FF7B00; }
+        .secondary-accent-bg { background-color: #008D8D; }
+        .gradient-text {
+            background: linear-gradient(45deg, #FF7B00, #008D8D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .range-long { color: #ef4444; } /* red-500 */
+        .range-mid { color: #f59e0b; } /* amber-500 */
+        .range-short { color: #22c55e; } /* green-500 */
+        .ink-bad { color: #ef4444; }
+        .ink-normal { color: #f59e0b; }
+        .ink-good { color: #22c55e; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-[#FDFBF8]/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#hero" class="text-2xl font-bold gradient-text">スプラ3 戦略ガイド</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#basics" class="nav-link px-3 py-2 rounded-md text-sm font-medium">基本戦略</a>
+                        <a href="#weapons" class="nav-link px-3 py-2 rounded-md text-sm font-medium">ブキ選び</a>
+                        <a href="#rules" class="nav-link px-3 py-2 rounded-md text-sm font-medium">ルール別攻略</a>
+                        <a href="#stages" class="nav-link px-3 py-2 rounded-md text-sm font-medium">ステージ情報</a>
+                        <a href="#tips" class="nav-link px-3 py-2 rounded-md text-sm font-medium">上達のヒント</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">メインメニューを開く</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#basics" class="nav-link block px-3 py-2 rounded-md text-base font-medium">基本戦略</a>
+                    <a href="#weapons" class="nav-link block px-3 py-2 rounded-md text-base font-medium">ブキ選び</a>
+                    <a href="#rules" class="nav-link block px-3 py-2 rounded-md text-base font-medium">ルール別攻略</a>
+                    <a href="#stages" class="nav-link block px-3 py-2 rounded-md text-base font-medium">ステージ情報</a>
+                    <a href="#tips" class="nav-link block px-3 py-2 rounded-md text-base font-medium">上達のヒント</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="hero" class="text-center py-16 md:py-24">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight">
+                <span class="block gradient-text">勝利への道筋を、</span>
+                <span class="block gradient-text">インタラクティブに解き明かす。</span>
+            </h1>
+            <p class="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-gray-600">
+                『スプラトゥーン3』で勝ちたい、すべてプレイヤーへ。このガイドは、単なる情報の羅列ではありません。ブキ選びから戦術、思考法まで、勝利に必要な知識を体系的に整理し、あなたのプレイスタイルに合わせて探索できるインタラクティブな戦略ツールです。
+            </p>
+        </section>
+
+        <section id="basics" class="py-12 md:py-20">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">勝利への道：基本戦略と心構え</h2>
+            <p class="text-center max-w-3xl mx-auto mb-16 text-gray-600">
+                勝利を掴むための土台となる普遍的な原則です。個々のテクニックを学ぶ前に、まずは戦場を支配するための思考法と基本アクションを身につけましょう。各項目はスプラトゥーンの根幹をなす重要な要素です。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">🗺️</span> マップ理解と状況判断</h3>
+                    <p class="text-gray-700">ステージの地形と、イカランプやマップから得られる動的な情報を結びつけ、最適な行動を判断する力。予測と対応のサイクルが勝利の鍵です。</p>
+                </div>
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">🎨</span> 塗りと前線維持</h3>
+                    <p class="text-gray-700">単なる陣取りではなく、味方の行動範囲と選択肢を広げ、敵を制限する戦略的行為。有利な盤面を作り出す全てのルールの基礎となります。</p>
+                </div>
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">⚖️</span> 人数有利・不利の立ち回り</h3>
+                    <p class="text-gray-700">戦況を左右する最重要要素。有利な時は攻め、不利な時は引く、または潜伏で時間を稼ぐ。このメリハリがチームを勝利に導きます。</p>
+                </div>
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">💥</span> スペシャルウェポンの活用</h3>
+                    <p class="text-gray-700">戦況を覆す切り札。単独で使うのではなく、味方と連携し、打開や抑えといった明確な目的を持って使うことで真価を発揮します。</p>
+                </div>
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">👻</span> 潜伏と奇襲</h3>
+                    <p class="text-gray-700">敵の意表を突く強力な戦術。有利な位置で待ち伏せ、死角から攻撃することで一方的なキルを狙い、盤面に混乱を生み出します。</p>
+                </div>
+                <div class="card-bg-light rounded-xl shadow-lg p-6 transform hover:-translate-y-2 transition-transform duration-300">
+                    <h3 class="text-xl font-bold mb-3 accent-color flex items-center"><span class="text-3xl mr-3">🔄</span> イカロール・イカノボリ</h3>
+                    <p class="text-gray-700">機動力と生存性を高める新アクション。敵のエイムをずらし、高所を確保するなど、三次元的な揺らぶりで対面を有利にします。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="weapons" class="py-12 md:py-20 bg-white rounded-2xl shadow-inner">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">ブキ選びの極意</h2>
+            <p class="text-center max-w-3xl mx-auto mb-12 text-gray-600">
+                あなたのプレイスタイルに最適な一本を見つけましょう。同じメインウェポンでも、サブ・スペシャルが違う「派生ブキ」で戦い方は大きく変わります。性能を比較し、自分に合ったブキを探してみてください。
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-2 md:gap-3 mb-10" id="weapon-filters">
+                <button class="weapon-btn px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-full shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 active" data-filter="all">すべて</button>
+            </div>
+
+            <div id="weapon-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                </div>
+            
+            <div class="mt-20">
+                <h3 class="text-2xl md:text-3xl font-bold text-center mb-8">現環境のトレンド：フェス100傑ブキ使用率</h3>
+                 <p class="text-center max-w-3xl mx-auto mb-8 text-gray-600">
+                    トッププレイヤーたちがどのブキを選択しているかを見てみましょう。これは2025年4月のSpringFestにおける上位100人のブキ使用率データです。メタ（流行）を理解することは、ブキ選びだけでなく、相手の対策を考える上でも重要です。
+                </p>
+                <div class="chart-container">
+                    <canvas id="weaponChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="rules" class="py-12 md:py-20">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">ルール別勝利の秘訣</h2>
+            <p class="text-center max-w-3xl mx-auto mb-12 text-gray-600">
+                スプラトゥーンの対戦ルールは、大きく「ナワバリバトル」と、4つの異なるルールで構成される「バンカラマッチ」に分かれます。勝利条件を正しく理解し、それに適した立ち回りをすることが勝率アップの近道です。タブを切り替えて、各ルールの要点を確認しましょう。
+            </p>
+            <div class="w-full max-w-4xl mx-auto">
+                <div class="flex flex-wrap justify-center border-b border-gray-200 mb-6">
+                    <button class="rule-tab flex-grow sm:flex-grow-0 text-center px-4 py-3 font-semibold text-gray-600 rounded-t-lg transition-colors duration-300" data-rule="turf">ナワバリバトル</button>
+                    <button class="rule-tab flex-grow sm:flex-grow-0 text-center px-4 py-3 font-semibold text-gray-600 rounded-t-lg transition-colors duration-300" data-rule="area">ガチエリア</button>
+                    <button class="rule-tab flex-grow sm:flex-grow-0 text-center px-4 py-3 font-semibold text-gray-600 rounded-t-lg transition-colors duration-300" data-rule="tower">ガチヤグラ</button>
+                    <button class="rule-tab flex-grow sm:flex-grow-0 text-center px-4 py-3 font-semibold text-gray-600 rounded-t-lg transition-colors duration-300" data-rule="rainmaker">ガチホコバトル</button>
+                    <button class="rule-tab flex-grow sm:flex-grow-0 text-center px-4 py-3 font-semibold text-gray-600 rounded-t-lg transition-colors duration-300" data-rule="clams">ガチアサリ</button>
+                </div>
+                <div id="rule-content" class="card-bg-light p-6 md:p-8 rounded-xl shadow-lg">
+                    </div>
+            </div>
+        </section>
+        
+        <section id="stages" class="py-12 md:py-20 bg-white rounded-2xl shadow-inner">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">ステージ別攻略のヒント</h2>
+            <p class="text-center max-w-3xl mx-auto mb-12 text-gray-600">
+                ステージ構造は戦術に大きな影響を与えます。各ステージの特徴を理解し、有利なポジションや強力なルートを把握しましょう。ドロップダウンからステージを選択してください。
+            </p>
+            <div class="max-w-3xl mx-auto">
+                <select id="stage-selector" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    </select>
+                <div id="stage-content" class="mt-8 card-bg-light p-6 md:p-8 rounded-xl shadow-lg min-h-[200px]">
+                    </div>
+            </div>
+        </section>
+
+        <section id="tips" class="py-12 md:py-20">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">さらなる上達のために</h2>
+            <p class="text-center max-w-3xl mx-auto mb-16 text-gray-600">
+                技術や知識を身につけたら、次はその精度を高め、応用力を養う段階です。継続的な成長を促すための習慣と考え方を紹介します。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg mb-2 secondary-accent-bg text-white rounded px-2 py-1 inline-block">チーム連携</h3>
+                    <p class="text-gray-600">VCなしでも連携は可能。マップを頻繁に確認し、味方の位置や意図を予測しましょう。「カモン！」や「ナイス！」のシグナルも有効なコミュニケーション手段です。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg mb-2 secondary-accent-bg text-white rounded px-2 py-1 inline-block">敗因分析</h3>
+                    <p class="text-gray-600">デスした場面や判断に迷った場面を振り返ることが重要です。自分のプレイを録画して見返し、なぜ負けたのか、どうすれば良かったのかを具体的に分析しましょう。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="font-bold text-lg mb-2 secondary-accent-bg text-white rounded px-2 py-1 inline-block">継続的な練習</h3>
+                    <p class="text-gray-600">試し撃ち場でのエイム練習、ヒーローモードでのキャラコン練習など、日々の地道な練習が基礎能力を向上させます。新しいブキや戦術を試すことも忘れずに。</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto py-6 px-4 text-center text-sm">
+            <p>この戦略ガイドは、提供された情報源を基に作成されたインタラクティブな学習ツールです。</p>
+            <p class="mt-1 opacity-70">スプラトゥーン3のすべてのプレイヤーに勝利のインクを！</p>
+        </div>
+    </footer>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const weaponData = [
+        // シューター
+        { name: 'スプラシューター', type: 'シューター', sub: 'キューバンボム', special: 'ウルトラショット', role: '前衛～中衛', damage: '36.0', range: '中', inkEfficiency: '普通', description: '最も標準的でバランスの取れたシューター。あらゆる状況に対応できる万能性が魅力。' },
+        { name: 'スプラシューターコラボ', type: 'シューター', sub: 'スプラッシュボム', special: 'トリプルトルネード', role: '前衛～中衛', damage: '36.0', range: '中', inkEfficiency: '普通', description: 'ボムとトルネードでエリアへの干渉力が高い構成。' },
+        { name: 'ヒーローシューター レプリカ', type: 'シューター', sub: 'キューバンボム', special: 'ウルトラショット', role: '前衛～中衛', damage: '36.0', range: '中', inkEfficiency: '普通', description: 'スプラシューターと同じ性能を持つ、ヒーローの魂が宿るブキ。' },
+        { name: 'シャープマーカー', type: 'シューター', sub: 'クイックボム', special: 'カニタンク', role: '前衛', damage: '28.0', range: '短', inkEfficiency: '良い', description: 'ジャンプ撃ちでも弾がブレない高い精度を持つ。クイックボムとのコンボが強力。' },
+        { name: 'シャープマーカーネオ', type: 'シューター', sub: 'キューバンボム', special: 'トリプルトルネード', role: '前衛', damage: '28.0', range: '短', inkEfficiency: '良い', description: '塗り性能の高いキット。盤面をコントロールしつつ戦う。' },
+        { name: 'N-ZAP85', type: 'シューター', sub: 'キューバンボム', special: 'エナジースタンド', role: '中衛サポート', damage: '28.0', range: '中', inkEfficiency: '良い', description: '軽量級で機動力が高く、塗り性能も優秀。エナジースタンドで味方をサポートする動きが強い。' },
+        { name: 'N-ZAP89', type: 'シューター', sub: 'ロボットボム', special: 'デコイチラシ', role: '中衛サポート', damage: '28.0', range: '中', inkEfficiency: '良い', description: 'ロボットボムで索敵し、デコイで敵の注意を引く攪乱型の構成。' },
+        { name: '.52ガロン', type: 'シューター', sub: 'スプラッシュシールド', special: 'メガホンレーザー5.1ch', role: '前衛', damage: '52.0 (2確)', range: '中', inkEfficiency: '悪い', description: '2発で相手を倒せる高い攻撃力が特徴。シールドを使った対面維持が得意。' },
+        { name: '.52ガロンデコ', type: 'シューター', sub: 'カーリングボム', special: 'スミナガシート', role: '前衛', damage: '52.0 (2確)', range: '中', inkEfficiency: '悪い', description: 'カーリングで素早く距離を詰め、スミナガシートで視界を遮りキルを狙う。' },
+        
+        // マニューバー
+        { name: 'スパッタリー', type: 'マニューバー', sub: 'ジャンプビーコン', special: 'エナジースタンド', role: '前衛', damage: '36.0', range: '短', inkEfficiency: '良い', description: 'スライド後の隙が少なく、近距離でのキル性能が高い。ビーコンでの復帰支援もこなす。' },
+        { name: 'スパッタリー・ヒュー', type: 'マニューバー', sub: 'トーピード', special: 'サメライド', role: '前衛', damage: '36.0', range: '短', inkEfficiency: '良い', description: 'トーピードで索敵し、サメライドで強引にキルを狙う攻撃的な構成。' },
+        
+        // チャージャー
+        { name: 'リッター4K', type: 'チャージャー', sub: 'トラップ', special: 'ホップソナー', role: '後衛', damage: '180.0', range: '長', inkEfficiency: '悪い', description: '全ブキ中トップクラスの射程を誇る。後方から敵を一人ずつ確実に仕留める。' },
+        { name: 'リッター4Kカスタム', type: 'チャージャー', sub: 'ジャンプビーコン', special: 'テイオウイカ', role: '後衛', damage: '180.0', range: '長', inkEfficiency: '悪い', description: 'ビーコンで有利なポジションに復帰しやすく、テイオウイカで自衛もこなす。' },
+        { name: 'スプラチャージャー', type: 'チャージャー', sub: 'スプラッシュボム', special: 'キューインキ', role: '後衛', damage: '160.0', range: '長', inkEfficiency: '悪い', description: 'リッターより射程は短いが、チャージが速く取り回しやすい。ボムでの牽制も可能。' },
+        { name: 'スプラチャージャーコラボ', type: 'チャージャー', sub: 'スプラッシュシールド', special: 'トリプルトルネード', role: '後衛', damage: '160.0', range: '長', inkEfficiency: '悪い', description: 'シールドで身を守りつつ、トルネードでエリアを制圧する安定志向の構成。' },
+
+        // ブラスター
+        { name: 'ホットブラスター', type: 'ブラスター', sub: 'ロボットボム', special: 'グレートバリア', role: '中衛', damage: '125.0(直撃)', range: '中', inkEfficiency: '悪い', description: '直撃させれば一撃。爆風による範囲攻撃で障害物裏の敵にも有効。' },
+        { name: 'ホットブラスターカスタム', type: 'ブラスター', sub: 'ポイントセンサー', special: 'ウルトラチャクチ', role: '中衛', damage: '125.0(直撃)', range: '中', inkEfficiency: '悪い', description: 'ポイセンで敵をマークし、チャクチで確実に仕留めるキル特化構成。' },
+
+        // ローラー
+        { name: 'スプラローラー', type: 'ローラー', sub: 'カーリングボム', special: 'グレートバリア', role: '前衛', damage: '40-150', range: '短', inkEfficiency: '普通', description: '潜伏からの奇襲が得意。タテ振りによる一撃必殺が強力。' },
+        { name: 'スプラローラーコラボ', type: 'ローラー', sub: 'ジャンプビーコン', special: 'テイオウイカ', role: '前衛', damage: '40-150', range: '短', inkEfficiency: '普通', description: 'ビーコンで前線復帰を早め、テイオウイカで敵陣を荒らす。' },
+
+        // スロッシャー
+        { name: 'バケットスロッシャー', type: 'スロッシャー', sub: 'スプラッシュボム', special: 'トリプルトルネード', role: '中衛', damage: '70.0', range: '中', inkEfficiency: '普通', description: '高低差に強く、曲射で障害物裏の敵を攻撃しやすい。バランスの取れた性能。' },
+        { name: 'バケットスロッシャーデコ', type: 'スロッシャー', sub: 'スプリンクラー', special: 'デコイチラシ', role: '中衛', damage: '70.0', range: '中', inkEfficiency: '普通', description: 'スプリンクラーで塗りを確保し、デコイで敵のヘイトを集める。' },
+
+        // ワイパー
+        { name: 'ドライブワイパー', type: 'ワイパー', sub: 'トーピード', special: 'ウルトラハンコ', role: '前衛', damage: '30-60', range: '短', inkEfficiency: '良い', description: '機動力が高く、ヨコ斬りで牽制しつつタメ斬りでキルを狙う。トーピードでの索敵も有効。' },
+        { name: 'ドライブワイパーデコ', type: 'ワイパー', sub: 'ジャンプビーコン', special: 'マルチミサイル', role: 'サポート', damage: '30-60', range: '短', inkEfficiency: '良い', description: 'ビーコンで味方の復帰を助け、マルミサで広範囲を索敵・攻撃するサポート型。' }
+    ];
+
+    const ruleData = {
+        turf: {
+            title: 'ナワバリバトル',
+            objective: '3分間でより多くの面積を塗ったチームが勝利。',
+            tips: [
+                '<strong>序盤：</strong>中央エリアの確保を優先しつつ、自陣を大まかに塗る。',
+                '<strong>中盤：</strong>盤面をコントロールし、スペシャルで有利状況を作る。',
+                '<strong>終盤：</strong>最も重要。優勢ならデスを避け盤面を維持。劣勢ならスペシャルを合わせて逆転を狙う。',
+                '<strong>意識：</strong>キルよりも塗りを優先。終盤は特にデスしない立ち回りが重要。'
+            ]
+        },
+        area: {
+            title: 'ガチエリア',
+            objective: 'エリアを確保し続け、カウントを0にする。',
+            tips: [
+                '<strong>初動：</strong>最速でエリアへ向かい、塗り合いに参加する。',
+                '<strong>抑え（確保時）：</strong>デスしないことが最優先。エリア周辺を塗り固め、敵を近づけさせない。',
+                '<strong>打開（被確保時）：</strong>焦らずスペシャルを溜め、味方とタイミングを合わせて一斉攻撃。',
+                '<strong>意識：</strong>常にエリアを塗る意識を持つ。人数有利を作ってエリアを確保・維持する。'
+            ]
+        },
+        tower: {
+            title: 'ガチヤグラ',
+            objective: 'ヤグラに乗り、相手ゴールまで運ぶ。',
+            tips: [
+                '<strong>攻撃：</strong>誰か一人がヤグラに乗り、他は進路確保と護衛に徹する。カンモン突破はスペシャルを合わせる。',
+                '<strong>防衛：</strong>ヤグラに乗っている敵を最優先で狙う。カンモンで停止している時が最大のチャンス。',
+                '<strong>意識：</strong>「乗る勇気」と「降りる判断」のバランス。ヤグラを中心に攻防が展開される。'
+            ]
+        },
+        rainmaker: {
+            title: 'ガチホコバトル',
+            objective: 'ガチホコを相手ゴールまで運ぶ。',
+            tips: [
+                '<strong>ホコ割り：</strong>味方と協力して素早くバリアを破壊する。',
+                '<strong>ホコ持ち：</strong>強力なホコショットで道を作りつつ、味方の護衛を信じて進む。',
+                '<strong>護衛：</strong>ホコ持ちの前方の塗りを確保し、敵を排除する。',
+                '<strong>意識：</strong>人数有利な状況でホコを運ぶことが鉄則。カンモンでの攻防が鍵。'
+            ]
+        },
+        clams: {
+            title: 'ガチアサリ',
+            objective: 'アサリを集めてガチアサリを作り、相手ゴールを破壊してアサリを投げ込む。',
+            tips: [
+                '<strong>アサリ集め：</strong>効率よく集め、敵を倒してアサリを奪う。',
+                '<strong>ガチアサリ作成：</strong>敵に位置がバレるため、作るタイミングと場所が重要。ゴール近くで作るのが理想。',
+                '<strong>攻撃：</strong>チャンスタイムにできるだけ多くのアサリを投げ込む。スペシャルでゴールへの道をこじ開ける。',
+                '<strong>意識：</strong>チームと個人のアサリ所持数を常に把握する。リソース管理と一点突破が試される。'
+            ]
+        }
+    };
+    
+    const stageData = {
+        yunohana: { name: 'ユノハナ大渓谷', tips: '<strong>特徴:</strong> 中央の巨大な高台と激しい高低差。<br><strong>戦術:</strong> 高台の制圧が全てのルールで最重要。長射程ブキが活躍しやすい。左右非対称なルートの活用も鍵。' },
+        gonzui: { name: 'ゴンズイ地区', tips: '<strong>特徴:</strong> 上下二層構造と中央の橋。<br><strong>戦術:</strong> 上層と下層の連携が重要。長射程は上から、短射程は下から攻めるのが基本。中央の橋を巡る攻防が激しくなりやすい。' },
+        namerou: { name: 'ナメロウ金属', tips: '<strong>特徴:</strong> 中央の金網エリアと少ない遮蔽物。<br><strong>戦術:</strong> 長射程ブキが非常に強く、金網を挟んだ撃ち合いが頻発する。金網下のエリアへの干渉と、敵の長射程をどう処理するかが鍵となる。' },
+        kusaya: { name: 'クサヤ温泉', tips: '<strong>特徴:</strong> 中央の長いスロープと激しい高低差。<br><strong>戦術:</strong> スロープを巡る攻防が中心。高低差を活かした曲射や奇襲が有効。防衛側は坂の入り口を死守することが重要。' },
+        masaba: { name: 'マサバ海峡大橋', tips: '<strong>特徴:</strong> 縦に長く、中央の橋と左右の金網。<br><strong>戦術:</strong> 中央の橋（高台）の利用が鍵。ここから盤面全体に圧力をかける。改修で増えた裏取りルートも把握しておく必要がある。' },
+        kinmedai: { name: 'キンメダイ美術館', tips: '<strong>特徴:</strong> 戦況を変化させる「回転台」。<br><strong>戦術:</strong> 回転台の動きを理解し、利用することが絶対条件。有利なタイミングで仕掛ける判断力が求められる。' }
+    };
+
+    // Weapon Section Logic
+    const weaponGrid = document.getElementById('weapon-grid');
+    const filterContainer = document.getElementById('weapon-filters');
+    const weaponTypes = [...new Set(weaponData.map(w => w.type))];
+
+    weaponTypes.forEach(type => {
+        const button = document.createElement('button');
+        button.className = 'weapon-btn px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-full shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300';
+        button.textContent = type;
+        button.dataset.filter = type;
+        filterContainer.appendChild(button);
+    });
+
+    const displayWeapons = (filter = 'all') => {
+        weaponGrid.innerHTML = '';
+        const filteredWeapons = filter === 'all' ? weaponData : weaponData.filter(w => w.type === filter);
+        filteredWeapons.forEach(weapon => {
+            const card = document.createElement('div');
+            const rangeColor = weapon.range === '長' ? 'range-long' : (weapon.range === '中' ? 'range-mid' : 'range-short');
+            const inkColor = weapon.inkEfficiency === '悪い' ? 'ink-bad' : (weapon.inkEfficiency === '普通' ? 'ink-normal' : 'ink-good');
+
+            card.className = 'bg-white rounded-xl shadow-lg p-5 flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1';
+            card.innerHTML = `
+                <h4 class="text-lg font-bold">${weapon.name}</h4>
+                <div class="text-xs font-semibold my-2 flex flex-wrap gap-2">
+                    <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${weapon.type}</span>
+                    <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full">${weapon.role}</span>
+                </div>
+                <p class="text-sm text-gray-600 flex-grow mt-2">${weapon.description}</p>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200 space-y-2 text-sm">
+                    <div class="flex items-center">
+                        <span class="w-5 mr-2 text-center" title="ダメージ">🎯</span> 
+                        <strong>ダメージ:</strong> 
+                        <span class="ml-auto font-mono accent-color font-semibold">${weapon.damage}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-5 mr-2 text-center" title="射程">📏</span>
+                        <strong>射程:</strong> 
+                        <span class="ml-auto font-semibold ${rangeColor}">${weapon.range}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-5 mr-2 text-center" title="インク効率">💧</span>
+                        <strong>インク効率:</strong> 
+                        <span class="ml-auto font-semibold ${inkColor}">${weapon.inkEfficiency}</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-200 text-sm">
+                    <p><strong>サブ:</strong> ${weapon.sub}</p>
+                    <p><strong>スペシャル:</strong> ${weapon.special}</p>
+                </div>
+            `;
+            weaponGrid.appendChild(card);
+        });
+    };
+
+    filterContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            displayWeapons(e.target.dataset.filter);
+        }
+    });
+
+    // Chart.js Logic
+    const ctx = document.getElementById('weaponChart').getContext('2d');
+    const weaponChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['LACT-450', 'シャープマーカー', 'S-BLAST91', 'バケットスロッシャー', 'ジムワイパー', 'スプラシューター', 'N-ZAP85'],
+            datasets: [{
+                label: 'フェス100傑 使用人数',
+                data: [30, 25, 17, 15, 12, 11, 9],
+                backgroundColor: 'rgba(0, 141, 141, 0.6)',
+                borderColor: 'rgba(0, 141, 141, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: '人数' } },
+                x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: '2025年4月 SpringFest 上位ブキ使用率', font: { size: 16 } },
+                tooltip: { callbacks: { label: function(context) { return ` 使用者: ${context.parsed.y}人`; } } }
+            }
+        }
+    });
+
+    // Rules Section Logic
+    const ruleTabs = document.querySelectorAll('.rule-tab');
+    const ruleContent = document.getElementById('rule-content');
+
+    const updateRuleContent = (rule) => {
+        const data = ruleData[rule];
+        ruleContent.innerHTML = `
+            <h3 class="text-2xl font-bold mb-4 accent-color">${data.title}</h3>
+            <p class="mb-6 text-gray-700"><strong>目的:</strong> ${data.objective}</p>
+            <ul class="space-y-3 list-inside">
+                ${data.tips.map(tip => `<li class="flex items-start"><span class="text-orange-500 mr-2 mt-1">▶</span><span class="text-gray-700">${tip}</span></li>`).join('')}
+            </ul>
+        `;
+    };
+
+    ruleTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            ruleTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            updateRuleContent(tab.dataset.rule);
+        });
+    });
+
+    // Stage Section Logic
+    const stageSelector = document.getElementById('stage-selector');
+    const stageContent = document.getElementById('stage-content');
+
+    Object.keys(stageData).forEach(key => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = stageData[key].name;
+        stageSelector.appendChild(option);
+    });
+
+    const updateStageContent = (stage) => {
+        if (!stage) {
+            stageContent.innerHTML = `<p class="text-gray-500">上のメニューからステージを選択してください。</p>`;
+            return;
+        }
+        const data = stageData[stage];
+        stageContent.innerHTML = `
+            <h3 class="text-2xl font-bold mb-4 accent-color">${data.name}</h3>
+            <p class="text-gray-700">${data.tips}</p>
+        `;
+    };
+
+    stageSelector.addEventListener('change', (e) => {
+        updateStageContent(e.target.value);
+    });
+    
+    // Mobile Menu Logic
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Nav active state on scroll
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('nav a.nav-link');
+
+    window.onscroll = () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 80) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').substring(1) === current) {
+                link.classList.add('active');
+            }
+        });
+    };
+    
+    // Initial content load
+    displayWeapons();
+    document.querySelector('.weapon-btn[data-filter="all"]').classList.add('active');
+    updateRuleContent('turf');
+    document.querySelector('.rule-tab[data-rule="turf"]').classList.add('active');
+    updateStageContent(stageSelector.value);
+
+});
+</script>
+
+</body>
+</html>
